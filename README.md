@@ -1,136 +1,94 @@
-# MSCS-634 Project — Deliverable 4
+# MSCS 634 Project — Deliverable 4
 
 **Team:** Minh Le, Sebastian Capkovi, Shreyas More, Elkana Munganga  
 **Course:** Advanced Big Data and Data Mining | Fall 2026
 
-One consolidated, executed notebook integrates the first three deliverables. The comprehensive Word report and PowerPoint slides with speaker notes are included. The 5–7 minute video still needs to be recorded.
-
-## Start here
-[PowerPoint presentation](MSCS_634_Presentation.pptx) — 11 slides with an approximately 6 minute 30 second script. Each slide includes timing, narration, presenter cues, and source notes in its Notes pane.
-
-[Comprehensive written report](MSCS_634_Comprehensive_Report.docx) — findings, visualizations, recommendations, ethics, and references.
-
-Open [MSCS_634_Final_Analysis.ipynb](MSCS_634_Final_Analysis.ipynb). Saved outputs allow review without rerunning. All analysis code is included in the notebook.
-
-## Dataset and why it was selected
-The German Credit derivative contains 1,000 historical applicants and nine predictors: Age, Sex, Job, Housing, Saving accounts, Checking account, Credit amount, Duration, and Purpose. Its manageable size, interpretable features, and mixed numeric/categorical structure support EDA, regression, classification, clustering, and association mining. Regression predicts credit amount in historical Deutsche Mark (DM); classification predicts UCI good/bad risk labels (700 good, 300 bad).
-
-All nine shared attributes and the risk labels are checked against the bundled UCI source file. The derivative omits 11 original predictors, and this historical sample is not representative of present-day lending. Risk labels do not specify a modern default event or prediction horizon. See the [data dictionary](data/README.md).
-
-## Project steps
-1. Combine the three earlier deliverables into one documented workflow.
-2. Remove the export index; retain missing account categories; check duplicates, valid ranges, shared attributes, and labels.
-3. Explore distributions, skewness, purpose, correlation, and class imbalance.
-4. Engineer squared age/duration and duration × job; compare regression pipelines and log targets with training CV.
-5. Compare tree, k-NN, forest, and SVM classifiers with stratified training CV and minority-class metrics.
-6. Compare k=2–8 clusters; retain k=3 profiles for continuity; assess hierarchical agreement and PCA visualization.
-7. Mine credit-quartile/age/duration transactions with Apriori and FP-Growth; compare itemsets and report rules with counts.
-8. Audit subgroup errors; synthesize recommendations; export figures and tables, and summarize the findings in this README.
-
-## Major findings
-- **Preparation:** 1,000 applicants; nine shared attributes and all risk labels verified. Savings/checking missing counts before cleaning: 183/394. Duplicates: 0.
-- **EDA:** Mean credit amount 3,271.3 DM; original/log skewness 1.95/0.13; duration–amount correlation 0.625.
-- **Regression:** CV selected **Elastic Net (original)** (CV RMSE 2,102.2 DM). Test R² **0.369**, RMSE **1,959.4 DM**, MAE 1,351.4 DM. Errors remain substantial; these are not affordability estimates.
-- **Classification:** CV selected **Tuned random forest** (CV AUC 0.758). Test AUC **0.774**, accuracy 75.0%, bad-class recall **26.7%**, precision 72.7%. Compare against 70% majority accuracy; accuracy alone hides missed bad labels.
-- **Clustering:** Highest silhouette **0.241 at k=2**; k=3 silhouette 0.168; K-Means/hierarchical ARI 0.408. Weak separation limits claims of intrinsic borrower groups.
-- **Association rules:** Both algorithms return **1,520 itemsets**, yielding 7,796 rules at lift ≥1.1. Top bad-label rule: `Checking account=little + Duration group=>24` → `Risk=bad`, support 4.2%, confidence 65.6%, lift 2.188; 42 joint matches among 64 antecedent matches. This is an in-sample association.
-- **Ethics:** Subgroup errors and denominators are reported; fairness, causation, and modern deployment readiness are not established.
-
-
-## Regression results
-Fresh results use corrected fold-specific preprocessing and explicit search grids. Selection uses training CV RMSE, not test scores. CV results are tuning estimates, not nested CV. RMSE/MAE are in DM; MSE is in DM²; R² is unitless.
-
-| Model | CV RMSE | CV RMSE SD | CV R2 | Train R2 | Test R2 | Test MSE | Test RMSE | Test MAE |
-|---|---|---|---|---|---|---|---|---|
-| Mean baseline (original) | 2883.3089 | 323.8075 | -0.0113 | 0.0000 | -0.0328 | 6283631.8018 | 2506.7173 | 1903.8873 |
-| Linear Regression (original) | 2128.0199 | 262.5984 | 0.4404 | 0.5024 | 0.3192 | 4142279.0611 | 2035.2590 | 1385.6462 |
-| Ridge (original) | 2102.4168 | 263.4386 | 0.4557 | 0.4998 | 0.3559 | 3918441.4421 | 1979.5054 | 1361.1132 |
-| Lasso (original) | 2110.3270 | 264.0791 | 0.4502 | 0.5009 | 0.3395 | 4018765.8366 | 2004.6860 | 1366.2302 |
-| Elastic Net (original) | 2102.1741 | 262.0026 | 0.4561 | 0.4976 | 0.3689 | 3839416.8075 | 1959.4430 | 1351.3798 |
-| Linear Regression (log1p) | 2209.8213 | 283.7568 | 0.3981 | 0.4542 | 0.3624 | 3879357.3219 | 1969.6084 | 1235.4989 |
-| Ridge (log1p) | 2209.8476 | 283.7593 | 0.3981 | 0.4542 | 0.3623 | 3879550.8008 | 1969.6575 | 1235.5149 |
-| Lasso (log1p) | 2328.6468 | 270.2306 | 0.3353 | 0.3526 | 0.3651 | 3862545.4822 | 1965.3360 | 1255.8530 |
-| Elastic Net (log1p) | 2221.8677 | 286.7514 | 0.3905 | 0.4382 | 0.3096 | 4200130.6735 | 2049.4220 | 1255.6860 |
-
-## Classification results
-Positive class = bad. Selection uses training CV AUC. SVM scores are uncalibrated decision scores. Test predictions use default estimator decision rules.
-
-| Model | CV AUC | CV AUC SD | Accuracy | Bad precision | Bad recall | Bad F1 | Weighted F1 | Test AUC | Average precision |
-|---|---|---|---|---|---|---|---|---|---|
-| Majority baseline | 0.5000 | 0.0000 | 0.7000 | 0.0000 | 0.0000 | 0.0000 | 0.5765 | 0.5000 | 0.3000 |
-| Baseline tree | 0.5756 | 0.0572 | 0.6650 | 0.4386 | 0.4167 | 0.4274 | 0.6625 | 0.5940 | 0.3577 |
-| Tuned tree | 0.7056 | 0.0479 | 0.7250 | 0.5556 | 0.4167 | 0.4762 | 0.7123 | 0.7602 | 0.5663 |
-| Tuned k-NN | 0.7207 | 0.0322 | 0.7350 | 0.6667 | 0.2333 | 0.3457 | 0.6874 | 0.7612 | 0.6314 |
-| Tuned random forest | 0.7578 | 0.0552 | 0.7500 | 0.7273 | 0.2667 | 0.3902 | 0.7070 | 0.7737 | 0.6175 |
-| Balanced SVM | 0.7444 | 0.0425 | 0.7150 | 0.5169 | 0.7667 | 0.6174 | 0.7263 | 0.7990 | 0.6595 |
-
-## Three-cluster profiles
-IDs are arbitrary; Risk is added only after clustering. These are descriptive groups, not validated lending categories.
-
-| Cluster | Applicants | Age | Credit_amount | Duration | Job | Bad_rate |
-|---|---|---|---|---|---|---|
-| 0.0000 | 562.0000 | 29.2295 | 2195.7295 | 17.2064 | 1.8754 | 0.2900 |
-| 1.0000 | 192.0000 | 35.0365 | 7631.6042 | 38.5990 | 2.2917 | 0.4635 |
-| 2.0000 | 246.0000 | 50.3740 | 2325.1626 | 15.5366 | 1.6667 | 0.1951 |
-
-## Visual evidence
-![EDA overview](figures/01_eda_overview.png)
-![Regression comparison](figures/03_regression_evaluation.png)
-![Classification comparison](figures/05_classification_performance.png)
-![Clustering diagnostics](figures/07_clustering_diagnostics.png)
-![Association rules](figures/10_association_rules.png)
-
-## Challenges and corrections
-- Rebuilt one ordered workflow instead of concatenating reused variables and out-of-order sections.
-- Verified every shared attribute before accepting positional risk labels.
-- Moved encoding and scaling inside CV, including regression penalty selection.
-- Used explicit regression grids and smaller classifier grids; original analyses are linked in the references for comparison.
-- Corrected Unknown checking semantics: UCI A14 means no checking account. A65 savings means unknown/no savings account.
-- Used actual credit quartiles, correcting inconsistent fixed thresholds in earlier prose; age bin labels now correctly include 25 in the first bin.
-- Recomputed cluster profiles and rules, reporting the actual silhouette winner.
-- Used all applicants for the hierarchy; a small illustrative subset cannot establish full-sample topology.
-- Replaced unsupported causal/automatic approval/pricing recommendations with evidence-limited conclusions.
-
-## Recommendations, ethics, and limitations
-Use regression estimates with explicit error diagnostics, especially for large loans. For classification, compare missed bad labels and false alarms rather than accuracy alone. Clusters and rules are hypotheses requiring independent validation. No automatic lending decisions are supported by this exercise.
-
-The sample is historical, geographically limited, and small. Age, sex, and socioeconomic predictors can encode historical discrimination; removing demographics alone does not eliminate proxies. The derivative's binary sex field simplifies the original combined personal-status/sex attribute. The notebook reports subgroup errors with denominators, but does not establish fairness or quantify subgroup uncertainty. No identifying personal information was added, and records should not be re-identified.
-
-Implemented safeguards include verified labels, documented account semantics, fold-specific preprocessing, stratified splits, naive baselines, minority-class metrics, and subgroup diagnostics. Future work includes contemporary external validation, repeated/nested CV, uncertainty estimation, nonlinear regression, feature ablations, cluster stability, held-out rule validation, calibration, explicit decision costs, and intersectional fairness analysis. Prior deliverables already examined the benchmark test rows; this run is not a new blind external test.
-
-## Reproduce
-Python 3.13 was used. Exact direct dependency versions appear in `requirements.txt`.
-
-```bash
-python -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m notebook MSCS_634_Final_Analysis.ipynb
-```
-
-Select the virtual environment kernel and Run All.
-
-Runtime depends on hardware; searches use two workers. All required inputs are local. Running the notebook refreshes figures and creates a `results/` folder containing exported tables. Saved results and visualizations are already embedded in the submitted notebook.
-
 ## Submission files
-```text
-MSCS_634_Project/
-  MSCS_634_Final_Analysis.ipynb  # Consolidated notebook with saved outputs
-  MSCS_634_Comprehensive_Report.docx  # Comprehensive written report
-  MSCS_634_Presentation.pptx     # Slides with timed speaker notes
-  README.md                    # Dataset, project steps, and major findings
-  requirements.txt             # Dependencies for running the notebook
-  data/                        # Required inputs and data dictionary
-  figures/                     # Visualizations referenced by the README
-```
+- [Consolidated notebook](MSCS_634_Final_Analysis.ipynb): original code, comments, saved outputs, visualizations, final synthesis, and source caveats.
+- [Comprehensive Word report](MSCS_634_Comprehensive_Report.docx).
+- [PowerPoint with speaker notes](MSCS_634_Presentation.pptx): 11 slides, approximately 6½ minutes.
+- `data/`: local input files; `figures/`: selected original notebook images; `requirements.txt`: analysis dependencies.
 
-## References and attribution
-- Hofmann, H. (1994). *Statlog (German Credit Data)*. UCI Machine Learning Repository. [doi:10.24432/C5NC77](https://doi.org/10.24432/C5NC77). UCI lists the dataset under CC BY 4.0.
-- [Kaggle derivative used in Deliverable 1](https://www.kaggle.com/datasets/varunchawla30/german-credit-data).
-- [Deliverable 1](https://github.com/elkana-m/CS-634/tree/main/project1): preparation and EDA.
-- [Deliverable 2](https://github.com/sebcap7/MSCS_634_ProjectDeliverable_2): regression and feature engineering.
-- [Deliverable 3](https://github.com/smore38997/MSCS_634_ProjectDeliverable_3): classification, clustering, association mining.
+The presentation video still needs to be recorded. No ZIP or build scripts are included.
 
-Original authorship is retained. No new license is imposed on upstream code.
+## Dataset and project steps
+The German Credit derivative contains 1,000 historical applicants, nine project predictors, and 700 good / 300 bad benchmark labels after the Deliverable 3 outcome integration. Mixed numeric and categorical features support all four analytical methods. Regression predicts credit amount in historical Deutsche Mark (DM); classification predicts the benchmark risk label. This is a historical educational dataset, not a validated modern lending population.
+
+1. Deliverable 1: remove the export index, retain missing account categories, check duplicates/ranges, and explore distributions and correlations.
+2. Deliverable 2: engineer Duration², Age², and Duration × Job; compare Linear, Ridge, Lasso and Elastic Net with original and log targets.
+3. Deliverable 3: compare classifiers; examine K-Means and Ward clustering; mine association rules with Apriori and FP-Growth.
+4. Deliverable 4: consolidate original evidence, explain limitations, and present recommendations and ethics.
+
+## Evidence policy
+The main results below now come from the **original saved notebook tables**, not the revised modeling run previously included in this repository. No notebook was executed for this alignment revision. Every original source cell and saved output is retained, with local data-path adaptations and added provenance/caveats. A later Run All may produce different results; this submission does not claim a fresh reproduction of inconsistent upstream outputs.
+
+## Final synthesis using original saved results
+
+Deliverable 1 retained 1,000 rows, filled 183 savings and 394 checking entries with Unknown, found no duplicate records, and reported duration–amount correlation 0.625. Mean credit amount is 3,271.26 DM.
+
+### Deliverable 2 regression
+| Model | Test R² | Test MSE | Test RMSE (DM) | Test MAE (DM) | CV RMSE (DM) |
+| --- | --- | --- | --- | --- | --- |
+| Linear Regression | 0.319 | 4142279.061 | 2035.259 | 1385.646 | 2128.02 |
+| Ridge | 0.364 | 3866721.656 | 1966.398 | 1354.916 | 2105.289 |
+| Lasso | 0.364 | 3869385.994 | 1967.075 | 1342.767 | 2116.589 |
+| Elastic Net | 0.379 | 3779750.55 | 1944.158 | 1346.43 | 2103.606 |
+
+Elastic Net has the lowest original reported test RMSE (1,944.158 DM) and test MSE (3,779,750.550 DM²). Original tuning reported alpha about 2.55 and l1_ratio 0.9. Its original CV RMSE is 2,103.606 DM. Regularization modestly improves the linear baseline; large-loan errors remain. The log-linear experiment lowers MAE to 1,235.499 DM but does not beat original-target Elastic Net on test RMSE.
+
+### Deliverable 3 classification
+| Model | Accuracy | Bad precision | Bad recall | Bad F1 | Test AUC |
+| --- | --- | --- | --- | --- | --- |
+| Baseline tree | 0.665 | 0.4386 | 0.4167 | 0.4274 | 0.594 |
+| Tuned tree | 0.725 | 0.5556 | 0.4167 | 0.4762 | 0.7602 |
+| Tuned k-NN | 0.735 | 0.6667 | 0.2333 | 0.3457 | 0.7612 |
+| Tuned forest | 0.72 | 0.5286 | 0.6167 | 0.5692 | 0.7695 |
+| Balanced SVM | 0.715 | 0.5169 | 0.7667 | 0.6175 | 0.799 |
+
+SVM has the highest reported test AUC (0.7990) and bad-class recall (0.7667). Forest has the highest reported search CV AUC among the three tuned searches (0.7745); SVM was not included in an equivalent reported CV comparison. AUC, accuracy, and recall answer different questions.
+
+### Clustering and association mining
+The original project selected k=3 for interpretation, while its largest silhouette is 0.2407 at k=2. Cluster-profile numbers are source-reported and internally inconsistent. The original printed mining summary reports 1,438 itemsets and 7,294 rules; a conflicting plot title is disclosed below. The strongest reported bad-label rule has support 4.2%, confidence 65.6%, and lift 2.188.
+
+### Recommendations and ethics
+Retain these models as educational benchmarks. Validate on contemporary representative data; fit preprocessing inside tuning folds; use an untouched test sample, calibrated scores, explicit error costs, uncertainty estimates, subgroup evaluation, and independent rule/cluster validation. Avoid re-identification and automatic lending decisions based on historical correlations. Protect demographic data and assess proxy effects; fairness has not been established.
+
+### Source inconsistencies and interpretation limits
+The original saved numeric result tables and printed summaries are the primary reporting source. Original figures and code are retained as historical evidence, not claimed to be independently reproduced. No models or notebooks were executed during this alignment audit.
+
+- **Random forest:** Deliverable 3 cell 12 reports accuracy 0.7200 and bad recall 0.6167. Its cell 16 confusion-matrix image instead shows 44/60 bad cases detected (73.3%). The final report and slides use the cell 12 table, not that conflicting image. Counts derived from the table are 37 true positives, 23 false negatives, 33 false positives, and 107 true negatives; these are arithmetic reconstructions, not newly generated predictions.
+- **Cluster profiles:** Deliverable 3 cell 24 prints counts 480/280/240 and mean amounts 2,562.14/5,818.52/2,781.44 DM. Its embedded bar chart shows different amounts. The printed values imply a weighted mean of 3,526.56 DM, inconsistent with the dataset mean 3,271.26 DM. Preserve them only as source-reported, unreconciled figures; do not treat the cluster sizes or exact profiles as validated. The shared silhouette results (0.2407 at k=2 and 0.1684 at k=3) support only weak separation. The source chose k=3 by the elbow; k=2 has the highest silhouette.
+- **Rule totals:** Deliverable 3 cell 28 prints 1,438 itemsets and 7,294 rules, but the cell 30 scatterplot title says 7,796 rules. Main summaries use the printed counts and identify this conflict. The top rule agrees: duration >24 months and little checking → bad, support 4.2%, confidence 65.6%, lift 2.188.
+- **Bin meanings:** Source code uses `pd.qcut(..., q=4)` for credit, not the fixed 1,500/3,500/6,500 DM thresholds described in its prose. Age bins `[0,25,35,50,100]` include age 25 in the first interval, despite the `<25` label. Original labels remain in archived source cells; interpret the code boundaries.
+- **Evaluation:** Original preprocessing and model-selection behavior are preserved. Classification fits preprocessing before the CV grid search; regression uses model-specific internal CV after scaling and compares test results. Do not claim that every preprocessing step is fitted inside each tuning fold or that the test set was untouched by model selection. Fully nested pipelines and fresh external validation are recommendations.
+- **Ethics:** Unknown checking means no checking account (UCI A14), not an established or wealthy account. Historic good/bad labels are not a documented modern default horizon. No subgroup fairness audit was reported in the original notebooks. Automatic approval, fixed pricing premiums, and demographic targeting in earlier prose are not supported by this benchmark.
+
+
+## Visualizations
+![Original regression results](figures/03_regression_results.png)
+![Original classifier ROC curves](figures/05_classification_roc.png)
+![Original clustering diagnostics](figures/06_clustering_diagnostics.png)
+![Original top association rules](figures/07_association_top_rules.png)
+
+## Slide mapping
+| Slides | Source |
+|---|---|
+| 1 | Whole project / Deliverable 4 |
+| 2–3 | Deliverable 1; label integration from Deliverable 3 |
+| 4 | Deliverables 1–2 |
+| 5 | Deliverable 2 regression |
+| 6–8 | Deliverable 3 classification, clustering and rules |
+| 9–10 | Deliverable 4 ethics and recommendations |
+| 11 | References to all deliverables |
+
+## Review and optional reproduction
+Open the notebook to view all saved results; execution is not needed. To run later, install `requirements.txt` in a Python environment and open the notebook from this folder. All CSV inputs are local. Model searches are retained from upstream and may be expensive. Original saved execution counts are retained; cells were not run as one merged sequence during this revision. Dependency/version differences and existing source inconsistencies can change results. The file's safeguards and source caveats should be read before interpreting any rerun.
+
+## References and source snapshots
+- [Deliverable 1 — Data preparation and EDA](https://github.com/elkana-m/CS-634/blob/5eb885d8643ef80dc0e6b64ce0081b356eb1ca60/project1/german_credit_EDA.ipynb)
+- [Deliverable 2 — Regression and feature engineering](https://github.com/sebcap7/MSCS_634_ProjectDeliverable_2/blob/e58d32b747588ba5288242b6207b120a7d101b24/german_credit_regression2.ipynb)
+- [Deliverable 3 — Classification clustering and association mining](https://github.com/smore38997/MSCS_634_ProjectDeliverable_3/blob/6194352b983c292e9e9a9d92217b67295283f4d8/MSCS_634_Deliverable3.ipynb)
+- Hofmann, H. (1994). [Statlog German Credit Data](https://doi.org/10.24432/C5NC77), UCI Machine Learning Repository.
+- [Kaggle derivative](https://www.kaggle.com/datasets/varunchawla30/german-credit-data).
+
+Original authorship is retained. Source snapshots were audited on November 22, 2026. The nine predictor columns and row order match across all three source CSVs and the bundled cleaned CSV. This confirms common inputs, not the consistency of every saved model output.
