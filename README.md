@@ -6,10 +6,11 @@
 ## Submission files
 - [Consolidated notebook](MSCS_634_Final_Analysis.ipynb): original code, comments, saved outputs, visualizations, final synthesis, and source caveats.
 - [Comprehensive Word report](MSCS_634_Comprehensive_Report.docx).
-- [PowerPoint with speaker notes](MSCS_634_Presentation.pptx): 11 slides, approximately 6½ minutes.
+- [PowerPoint with speaker notes](MSCS_634_Presentation.pptx): 12 slides.
+- [Recorded presentation — watch on ScreenPal](https://go.screenpal.com/watch/cOX3oRn45iE).
 - `data/`: local input files; `figures/`: selected original notebook images; `requirements.txt`: analysis dependencies.
 
-The presentation video still needs to be recorded. No ZIP or build scripts are included.
+No ZIP or build scripts are included.
 
 ## Dataset and project steps
 The German Credit derivative contains 1,000 historical applicants, nine project predictors, and 700 good / 300 bad benchmark labels after the Deliverable 3 outcome integration. Mixed numeric and categorical features support all four analytical methods. Regression predicts credit amount in historical Deutsche Mark (DM); classification predicts the benchmark risk label. This is a historical educational dataset, not a validated modern lending population.
@@ -75,11 +76,10 @@ The original saved numeric result tables and printed summaries are the primary r
 |---|---|
 | 1 | Whole project / Deliverable 4 |
 | 2–3 | Deliverable 1; label integration from Deliverable 3 |
-| 4 | Deliverables 1–2 |
-| 5 | Deliverable 2 regression |
-| 6–8 | Deliverable 3 classification, clustering and rules |
-| 9–10 | Deliverable 4 ethics and recommendations |
-| 11 | References to all deliverables |
+| 4–6 | Deliverable 2 feature engineering, regression and residuals |
+| 7–9 | Deliverable 3 classification, clustering and rules |
+| 10–11 | Deliverable 4 ethics and recommendations |
+| 12 | References to all deliverables |
 
 ## Review and optional reproduction
 Open the notebook to view all saved results; execution is not needed. To run later, install `requirements.txt` in a Python environment and open the notebook from this folder. All CSV inputs are local. Model searches are retained from upstream and may be expensive. Original saved execution counts are retained; cells were not run as one merged sequence during this revision. Dependency/version differences and existing source inconsistencies can change results. The file's safeguards and source caveats should be read before interpreting any rerun.
